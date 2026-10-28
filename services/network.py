@@ -1,5 +1,6 @@
 import socket
 import time
+import os
 from util.colors import wrapColor
 
 seenPeers = set()
@@ -10,7 +11,9 @@ peers = {}
 def sendData(message, peerIp):
         port = int(message.split(':')[-1])
         udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udpSocket.sendto('sending straight packets, straight bytes jit'.encode(), (peerIp, port))
+        
+        allFiles = '\n'.join(os.listdir('.'))
+        udpSocket.sendto(f'dir:{allFiles}'.encode(), (peerIp, port))
         print(wrapColor(f'sent message to peer at:'), f'{peerIp}:{port}')
 
 def broadcast(identifier, port):
@@ -35,5 +38,11 @@ def listen(listener, identifier):
             seenPeers.add(message)
             print(wrapColor('located peer:'), f'{message}')
             sendData(message, addr[0])
+
         elif not message.startswith('p8p'):
-            print(wrapColor('received message:'), message)
+            if message.startswith('dir'):
+                files = message.split(':')[-1]
+                print(wrapColor(f'recieved all downloadable things:\n'), files)
+                input('choose file number: ')
+            else:
+              print(wrapColor('received message:'), message)
