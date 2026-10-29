@@ -38,8 +38,10 @@ def listen(listener, identifier):
         message = data.decode()
         if message.startswith('p8p') and identifier not in message and message not in seenPeers:
             seenPeers.add(message)
+            peers[message] = addr[0]
+
             print(wrapColor('located peer:'), f'{message}')
-            sendData(message, addr[0])
+            sendData(message, peers[message])
 
         elif not message.startswith('p8p'):
             # if message.startswith('dir'):

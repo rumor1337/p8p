@@ -1,10 +1,10 @@
 import socket
 import threading
 import sys
-import time
 
 from util.printHook import print, input
 from services.network import defaultPort, broadcast, listen
+from services.commands import run
 
 def main():
     listener = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -25,7 +25,7 @@ def main():
 
     try:
         while True:
-            input('> ')
+            run(input('> '))
     except KeyboardInterrupt:
         print('\nexiting')
         sys.exit(0)
