@@ -1,22 +1,21 @@
 import socket
 import time
 import os
+import threading
 from util.colors import wrapColor
 from util.printHook import print
+from services.transfer import receive
 
 seenPeers = set()
 syncInterval = 3
 defaultPort = 8888
 peers = {}
 
-def sendData(message, peerIp, command='chat:hi'):
-	port = int(message.split(':')[-1])
-	udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+listenerSocket = None
 
-	# allFiles = '\n'.join(os.listdir('.'))
-	# udpSocket.sendto(f'dir:{allFiles}'.encode(), (peerIp, port))
-	# print(wrapColor(f'sent message to peer at:'), f'{peerIp}:{port}')
-	udpSocket.sendto(command.encode(), (peerIp, port))
+def sendData(message, peerIp, command='chat:hi'):
+	port = int(message.split(':')[2])
+	listenerSocket.sendto(command.encode(), (peerIp, port))
 
 def broadcast(identifier, port):
 	udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -33,11 +32,11 @@ def broadcast(identifier, port):
 		time.sleep(syncInterval)
 
 def replyTo(addr, command):
-	requester = next((ident for ident, ip in peers.items() if ip == addr[0]), None)
-	if requester:
-		sendData(requester, addr[0], command)
+	listenerSocket.sendto(command.encode(), addr)
 
 def listen(listener, identifier):
+	global listenerSocket
+	listenerSocket = listener
 	while True:
 		data, addr = listener.recvfrom(65535)
 		message = data.decode()
@@ -61,9 +60,19 @@ def listen(listener, identifier):
 				if os.path.isdir(folder):
 					replyTo(addr, 'files:' + ' ; '.join(f"[{'d' if os.path.isdir(os.path.join(folder, n)) else 'f'}] {n}" for n in os.listdir(folder)))
 			elif message.startswith('dl'):
-				replyTo(addr, f'exists:{os.path.exists(message.split(":", 1)[1])}')
+				fileName = message.split(':', 1)[1]
+				if os.path.isdir(fileName):
+					replyTo(addr, f'exists:{fileName}:0:dir')
+				else:
+					replyTo(addr, f'exists:{fileName}:{identifier.split(":")[-1]}:{os.path.exists(fileName)}')
 			elif message.startswith('exists'):
-				if message.split(':', 1)[1] == 'True':
-					print('yes, exists')
+				parts = message.split(':', 3)
+				if len(parts) < 4:
+					continue
+				_, fileName, filePort, found = parts
+				if found == 'True':
+					threading.Thread(target=receive, args=(addr[0], int(filePort), fileName), daemon=True).start()
+				elif found == 'dir':
+					print(wrapColor('issue:'), f"{fileName} is a directory, you dummy; can't download that")
 				else:
 					print(wrapColor('issue:'), 'no such file?')
