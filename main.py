@@ -3,6 +3,7 @@ import threading
 import sys
 import time
 
+from util.printHook import print, input
 from services.network import defaultPort, broadcast, listen
 
 def main():
@@ -24,7 +25,7 @@ def main():
 
     try:
         while True:
-            time.sleep(1)
+            input('> ')
     except KeyboardInterrupt:
         print('\nexiting')
         sys.exit(0)
