@@ -2,20 +2,39 @@ from services.network import sendData, peers
 from util.printHook import print
 from util.colors import wrapColor
 
+def missingPeer():
+    print(wrapColor('issue:'), 'hold up, buster; noone is there')
+
 def chat(message):
 	if not peers:
-		print(wrapColor('issue:'), 'hold up, buster; noone is there')
+		missingPeer()
 		return
 	for identifier, ip in peers.items():
-		sendData(identifier, ip, command=message)
+		sendData(identifier, ip, f'chat:{message}')
 
 def help(message):
 	print(wrapColor('no can do, sorry'))
 	print(wrapColor('maybe try:'))
 	for command in commands:
-		print(command)
+		if command != "/help":
+		    print(command)
 
-commands = {'/chat': chat, '/help': help}
+def download(fileName):
+	if not peers:
+		missingPeer()
+		return
+	for identifier, ip in peers.items():
+		sendData(identifier, ip, f'dl:{fileName}')
+
+def dir(message):
+	if not peers:
+		missingPeer()
+		return
+	for identifier, ip in peers.items():
+		sendData(identifier, ip, f'dir:{message}')
+		
+
+commands = {'/chat': chat, '/help': help, '/download': download, '/dir': dir}
 
 def run(line):
 	parts = line.split(' ', 1)

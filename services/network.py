@@ -9,7 +9,7 @@ syncInterval = 3
 defaultPort = 8888
 peers = {}
 
-def sendData(message, peerIp, command='hi'):
+def sendData(message, peerIp, command='chat:hi'):
 	port = int(message.split(':')[-1])
 	udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -32,9 +32,14 @@ def broadcast(identifier, port):
 				
 		time.sleep(syncInterval)
 
+def replyTo(addr, command):
+	requester = next((ident for ident, ip in peers.items() if ip == addr[0]), None)
+	if requester:
+		sendData(requester, addr[0], command)
+
 def listen(listener, identifier):
 	while True:
-		data, addr = listener.recvfrom(1024)
+		data, addr = listener.recvfrom(65535)
 		message = data.decode()
 		if message.startswith('p8p') and identifier not in message and message not in seenPeers:
 			seenPeers.add(message)
@@ -45,6 +50,20 @@ def listen(listener, identifier):
 
 		elif not message.startswith('p8p'):
 			if message.startswith('chat'):
+				message = message.split(':')[-1]
 				print(wrapColor('received message:'), message)
-			if message.startswith('file'):
-				print('hi')
+			# [AI] couldn't find bug
+			elif message.startswith('files'):
+				print(wrapColor('peer dir:\n'), message.split(':', 1)[1])
+			# [AI] couldn't find bug
+			elif message.startswith('dir'):
+				folder = message.split(':', 1)[1] or '.'
+				if os.path.isdir(folder):
+					replyTo(addr, 'files:' + ' ; '.join(f"[{'d' if os.path.isdir(os.path.join(folder, n)) else 'f'}] {n}" for n in os.listdir(folder)))
+			elif message.startswith('dl'):
+				replyTo(addr, f'exists:{os.path.exists(message.split(":", 1)[1])}')
+			elif message.startswith('exists'):
+				if message.split(':', 1)[1] == 'True':
+					print('yes, exists')
+				else:
+					print(wrapColor('issue:'), 'no such file?')
