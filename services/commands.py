@@ -9,7 +9,7 @@ def chat(message):
 	if not peers:
 		missingPeer()
 		return
-	for identifier, ip in peers.items():
+	for identifier, ip in list(peers.items()):
 		sendData(identifier, ip, f'chat:{message}')
 
 def help(message):
@@ -23,14 +23,14 @@ def download(fileName):
 	if not peers:
 		missingPeer()
 		return
-	for identifier, ip in peers.items():
+	for identifier, ip in list(peers.items()):
 		sendData(identifier, ip, f'dl:{fileName}')
 
 def dir(message):
 	if not peers:
 		missingPeer()
 		return
-	for identifier, ip in peers.items():
+	for identifier, ip in list(peers.items()):
 		sendData(identifier, ip, f'dir:{message}')
 		
 

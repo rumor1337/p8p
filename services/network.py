@@ -8,8 +8,10 @@ from services.transfer import receive
 
 seenPeers = set()
 syncInterval = 3
+peerTimeout = syncInterval * 3
 defaultPort = 8888
 peers = {}
+lastSeen = {}
 
 listenerSocket = None
 
@@ -40,12 +42,15 @@ def listen(listener, identifier):
 	while True:
 		data, addr = listener.recvfrom(65535)
 		message = data.decode()
-		if message.startswith('p8p') and identifier not in message and message not in seenPeers:
-			seenPeers.add(message)
-			peers[message] = addr[0]
+		if message.startswith('p8p') and identifier not in message:
+			lastSeen[message] = time.time()
 
-			print(wrapColor('located peer:'), f'{message}')
-			sendData(message, peers[message])
+			if message not in seenPeers:
+				seenPeers.add(message)
+				peers[message] = addr[0]
+
+				print(wrapColor('located peer:'), f'{message}')
+				sendData(message, peers[message])
 
 		elif not message.startswith('p8p'):
 			if message.startswith('chat'):
@@ -76,3 +81,16 @@ def listen(listener, identifier):
 					print(wrapColor('issue:'), f"{fileName} is a directory, you dummy; can't download that")
 				else:
 					print(wrapColor('issue:'), 'no such file?')
+
+def watchPeers():
+	while True:
+		time.sleep(syncInterval)
+		now = time.time()
+		for peer in list(peers):
+			if now - lastSeen.get(peer, now) < peerTimeout:
+				continue
+
+			peers.pop(peer, None)
+			lastSeen.pop(peer, None)
+			seenPeers.discard(peer)
+			print(wrapColor('peer disconnected:'), peer)

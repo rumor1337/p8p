@@ -53,6 +53,7 @@ allows for devices to talk to eachother and pass along files on the same interne
 
 * Once p8p opens, you will see a message saying `"started p8p, hold your horses"`
 * Wait until `located peer:` appears in your terminal, which means both devices or "instances" are connected
+* If `peer disconnected:` appears, that device has gone offline or left the network; start p8p on it again to reconnect
 * If `located peer:` never appears, repeat the installation steps for your device, making sure everything has been done correctly
 * Click into your terminal and type in `/help` to see all available commands
 

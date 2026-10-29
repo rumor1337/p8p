@@ -3,7 +3,7 @@ import threading
 import sys
 
 from util.printHook import print, input
-from services.network import defaultPort, broadcast, listen
+from services.network import defaultPort, broadcast, listen, watchPeers
 from services.transfer import serve
 from services.commands import run
 
@@ -33,6 +33,7 @@ def main():
 
 	threading.Thread(target=broadcast, args=(identifier, port), daemon=True).start()
 	threading.Thread(target=listen, args=(listener, identifier), daemon=True).start()
+	threading.Thread(target=watchPeers, daemon=True).start()
 	threading.Thread(target=serve, args=(fileListener,), daemon=True).start()
 
 	try:
