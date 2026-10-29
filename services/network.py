@@ -10,13 +10,13 @@ defaultPort = 8888
 peers = {}
 
 def sendData(message, peerIp, command='hi'):
-        port = int(message.split(':')[-1])
-        udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        
-        # allFiles = '\n'.join(os.listdir('.'))
-        # udpSocket.sendto(f'dir:{allFiles}'.encode(), (peerIp, port))
-        # print(wrapColor(f'sent message to peer at:'), f'{peerIp}:{port}')
-        udpSocket.sendto(command.encode(), (peerIp, port))
+    port = int(message.split(':')[-1])
+    udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
+    # allFiles = '\n'.join(os.listdir('.'))
+    # udpSocket.sendto(f'dir:{allFiles}'.encode(), (peerIp, port))
+    # print(wrapColor(f'sent message to peer at:'), f'{peerIp}:{port}')
+    udpSocket.sendto(command.encode(), (peerIp, port))
 
 def broadcast(identifier, port):
     udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
